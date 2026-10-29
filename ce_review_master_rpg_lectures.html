@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Civil Engineering Review Master - RPG Edition</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Rajdhani', 'sans-serif'],
+                        display: ['Orbitron', 'sans-serif'],
+                    },
+                    colors: {
+                        darkbg: '#030712',
+                        cardbg: '#0f172a',
+                        cardborder: '#1e293b',
+                        neon: {
+                            cyan: '#38bdf8',
+                            emerald: '#34d399',
+                            violet: '#a78bfa',
+                            gold: '#fbbf24',
+                            rose: '#f43f5e'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #030712;
+            color: #f3f4f6;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(167, 139, 250, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .neon-glow-cyan { box-shadow: 0 0 15px rgba(56, 189, 248, 0.25); }
+        .neon-glow-gold { box-shadow: 0 0 15px rgba(251, 191, 36, 0.25); }
+        .neon-glow-emerald { box-shadow: 0 0 15px rgba(52, 211, 153, 0.25); }
+        
+        .neon-text-cyan { text-shadow: 0 0 8px rgba(56, 189, 248, 0.6); }
+        .neon-text-gold { text-shadow: 0 0 8px rgba(251, 191, 36, 0.6); }
+
+        /* Custom scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #030712; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+
+        /* Custom Range Input */
+        input[type=range] { -webkit-appearance: none; background: transparent; }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 22px; width: 22px;
+            border-radius: 50%;
+            background: #38bdf8;
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 0 10px #38bdf8;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 6px; background: #1e293b; border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden select-none">
+
+    <!-- ================= RPG TOP HUD ================= -->
+    <header class="glass-card border-b border-gray-800 z-30 sticky top-0 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            
+            <!-- Player Stats -->
+            <div class="flex items-center space-x-4 w-full md:w-auto">
+                <div class="relative">
+                    <div class="w-14 h-14 rounded-xl bg-slate-900 border-2 border-neon-cyan flex items-center justify-center neon-glow-cyan">
+                        <i class="fa-solid fa-user-ninja text-2xl text-neon-cyan"></i>
+                    </div>
+                    <span class="absolute -bottom-2 -right-2 bg-neon-gold text-slate-950 font-display font-black text-xs px-1.5 py-0.5 rounded shadow">
+                        LVL <span id="hud-level">1</span>
+                    </span>
+                </div>
+                <div>
+                    <h1 class="font-display font-bold text-lg tracking-wider text-white flex items-center gap-2">
+                        <span>EXAMINEE_ONE</span>
+                        <span id="hud-title" class="text-xs px-2 py-0.5 rounded bg-slate-800 text-neon-cyan border border-neon-cyan/30">Cadence Trainee</span>
+                    </h1>
+                    <p class="text-xs text-gray-400 font-sans tracking-wide">Target: Civil Engineering Licensure Exam</p>
+                </div>
+            </div>
+
+            <!-- XP Progress Bar -->
+            <div class="w-full md:w-1/3 flex flex-col space-y-1.5">
+                <div class="flex justify-between text-xs font-display font-semibold">
+                    <span class="text-neon-gold"><i class="fa-solid fa-bolt mr-1"></i>EXPERIENCE</span>
+                    <span class="text-gray-400"><span id="hud-xp-curr">0</span> / <span id="hud-xp-req">200</span> XP</span>
+                </div>
+                <div class="w-full bg-slate-950 rounded-full h-3.5 p-0.5 border border-slate-800">
+                    <div id="hud-xp-bar" class="bg-gradient-to-r from-amber-500 to-neon-gold h-full rounded-full transition-all duration-500 shadow-[0_0_10px_#fbbf24]" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Active Multiplier Badge -->
+            <div class="flex items-center space-x-3 w-full md:w-auto justify-end">
+                <div class="bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-lg flex items-center space-x-2">
+                    <i class="fa-solid fa-fire text-neon-gold text-lg"></i>
+                    <div>
+                        <div class="text-[10px] text-gray-400 font-display uppercase tracking-wider">XP MULTIPLIER</div>
+                        <div id="hud-multiplier" class="font-display font-black text-neon-gold text-base neon-text-gold">1.00x</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="max-w-7xl mx-auto flex space-x-2 mt-3 pt-2 border-t border-slate-800/80 font-display text-xs uppercase tracking-wider overflow-x-auto">
+            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="nav-tab px-4 py-2 rounded-lg bg-slate-800 text-neon-cyan font-bold border border-neon-cyan/30 flex items-center gap-2">
+                <i class="fa-solid fa-chart-pie"></i> Stats Dashboard
+            </button>
+            <button onclick="switchTab('focus')" id="tab-focus" class="nav-tab px-4 py-2 rounded-lg text-gray-400 hover:text-white flex items-center gap-2">
+                <i class="fa-solid fa-stopwatch"></i> Focus Deck
+            </button>
+            <button onclick="switchTab('lectures')" id="tab-lectures" class="nav-tab px-4 py-2 rounded-lg text-gray-400 hover:text-white flex items-center gap-2">
+                <i class="fa-solid fa-book-open-reader"></i> Lectures
+            </button>
+            <button onclick="switchTab('log')" id="tab-log" class="nav-tab px-4 py-2 rounded-lg text-gray-400 hover:text-white flex items-center gap-2">
+                <i class="fa-solid fa-pen-to-square"></i> Log Quest
+            </button>
+            <button onclick="switchTab('mastery')" id="tab-mastery" class="nav-tab px-4 py-2 rounded-lg text-gray-400 hover:text-white flex items-center gap-2">
+                <i class="fa-solid fa-sliders"></i> Daily Calibration
+            </button>
+        </div>
+    </header>
+
+    <!-- ================= DAILY BUFFS BANNER ================= -->
+    <section class="bg-slate-950/80 border-b border-slate-800/80 py-2 px-4">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+            <div class="flex items-center space-x-2 text-gray-400 font-display">
+                <i class="fa-solid fa-shield-heart text-neon-emerald"></i>
+                <span class="font-bold uppercase tracking-wider text-white">Daily Conditioning Buffs:</span>
+                <span class="hidden sm:inline text-gray-500">(Activate to boost XP yield)</span>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <button onclick="toggleBuff('sleep')" id="buff-sleep" class="px-3 py-1 rounded-md border border-slate-800 bg-slate-900 text-gray-400 hover:border-slate-700 transition flex items-center gap-1.5 font-sans">
+                    <i class="fa-solid fa-bed text-indigo-400"></i>
+                    <span>7+ Hrs Sleep</span>
+                    <span class="text-[10px] text-neon-emerald font-display font-bold">+15%</span>
+                </button>
+
+                <button onclick="toggleBuff('workout')" id="buff-workout" class="px-3 py-1 rounded-md border border-slate-800 bg-slate-900 text-gray-400 hover:border-slate-700 transition flex items-center gap-1.5 font-sans">
+                    <i class="fa-solid fa-dumbbell text-rose-400"></i>
+                    <span>Workout</span>
+                    <span class="text-[10px] text-neon-emerald font-display font-bold">+15%</span>
+                </button>
+
+                <button onclick="toggleBuff('hydration')" id="buff-hydration" class="px-3 py-1 rounded-md border border-slate-800 bg-slate-900 text-gray-400 hover:border-slate-700 transition flex items-center gap-1.5 font-sans">
+                    <i class="fa-solid fa-bottle-water text-cyan-400"></i>
+                    <span>Hydrated & Fed</span>
+                    <span class="text-[10px] text-neon-emerald font-display font-bold">+15%</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= MAIN CONTENT VIEWS ================= -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+        <div class="max-w-7xl mx-auto">
+
+            <!-- Toast Notification -->
+            <div id="toast" class="hidden fixed bottom-6 right-6 z-50 glass-card border-l-4 border-neon-cyan px-5 py-3 rounded-r-lg shadow-2xl flex items-center space-x-3 transition-all duration-300">
+                <i id="toast-icon" class="fa-solid fa-circle-check text-neon-cyan text-xl"></i>
+                <div>
+                    <h4 id="toast-title" class="font-display font-bold text-sm text-white">System Message</h4>
+                    <p id="toast-msg" class="text-xs text-gray-300">Action logged successfully.</p>
+                </div>
+            </div>
+
+            <!-- ================= VIEW 1: DASHBOARD ================= -->
+            <div id="view-dashboard" class="space-y-6">
+                
+                <!-- Category Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- MSTE Card -->
+                    <div class="glass-card p-4 rounded-xl border-t-2 border-neon-cyan relative overflow-hidden">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-[10px] font-display font-bold text-neon-cyan tracking-widest uppercase">BRANCH I</span>
+                                <h3 class="text-xl font-bold font-display text-white">MSTE</h3>
+                                <p class="text-xs text-gray-400">Math, Surveying, Transportation</p>
+                            </div>
+                            <span id="card-mste-score" class="font-display font-black text-2xl text-neon-cyan neon-text-cyan">0%</span>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between text-xs text-gray-400">
+                            <span>Quests Completed: <b id="card-mste-count" class="text-white">0</b></span>
+                            <span>Status: <b id="card-mste-status" class="text-neon-cyan">Unrated</b></span>
+                        </div>
+                    </div>
+
+                    <!-- HGE Card -->
+                    <div class="glass-card p-4 rounded-xl border-t-2 border-neon-gold relative overflow-hidden">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-[10px] font-display font-bold text-neon-gold tracking-widest uppercase">BRANCH II</span>
+                                <h3 class="text-xl font-bold font-display text-white">HGE</h3>
+                                <p class="text-xs text-gray-400">Hydraulics & Geotechnical</p>
+                            </div>
+                            <span id="card-hge-score" class="font-display font-black text-2xl text-neon-gold neon-text-gold">0%</span>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between text-xs text-gray-400">
+                            <span>Quests Completed: <b id="card-hge-count" class="text-white">0</b></span>
+                            <span>Status: <b id="card-hge-status" class="text-neon-gold">Unrated</b></span>
+                        </div>
+                    </div>
+
+                    <!-- PSAD Card -->
+                    <div class="glass-card p-4 rounded-xl border-t-2 border-neon-violet relative overflow-hidden">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-[10px] font-display font-bold text-neon-violet tracking-widest uppercase">BRANCH III</span>
+                                <h3 class="text-xl font-bold font-display text-white">PSAD</h3>
+                                <p class="text-xs text-gray-400">Structural Analysis & Design</p>
+                            </div>
+                            <span id="card-psad-score" class="font-display font-black text-2xl text-neon-violet">0%</span>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between text-xs text-gray-400">
+                            <span>Quests Completed: <b id="card-psad-count" class="text-white">0</b></span>
+                            <span>Status: <b id="card-psad-status" class="text-neon-violet">Unrated</b></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Analytics Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Attribute Mastery Doughnut Chart -->
+                    <div class="glass-card p-5 rounded-xl flex flex-col">
+                        <h3 class="font-display font-bold text-sm text-gray-300 uppercase tracking-wider mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-donut text-neon-cyan"></i> Attribute Mastery Balance
+                        </h3>
+                        <div class="relative flex-1 min-h-[220px] flex items-center justify-center">
+                            <canvas id="ringChart"></canvas>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                <span id="ring-avg-display" class="font-display font-black text-2xl text-white">0%</span>
+                                <span class="text-[10px] text-gray-500 uppercase tracking-widest">Total Power</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Line Chart: Score vs Confidence History -->
+                    <div class="glass-card p-5 rounded-xl lg:col-span-2 flex flex-col">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                            <h3 class="font-display font-bold text-sm text-gray-300 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-chart-line text-neon-gold"></i> Topic Progression Min-Maxer
+                            </h3>
+                            <select id="chart-topic-select" onchange="renderLineChart()" class="bg-slate-900 border border-slate-700 text-xs font-display text-white rounded-md px-3 py-1.5 focus:outline-none focus:border-neon-cyan">
+                                <option value="">Select Topic to Plot...</option>
+                            </select>
+                        </div>
+                        <div class="relative flex-1 min-h-[250px]">
+                            <canvas id="lineChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Min-Max Priority Radar & Actionable Targets -->
+                <div class="glass-card p-5 rounded-xl border border-rose-950/50">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+                        <h3 class="font-display font-bold text-sm text-rose-400 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-crosshairs text-rose-500"></i> High Friction Targets (Needs Focus)
+                        </h3>
+                        <span class="text-xs text-gray-500">Auto-calculated from low yield & sync ratings</span>
+                    </div>
+                    
+                    <div id="weakness-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ================= VIEW 2: FOCUS DECK (POMODORO) ================= -->
+            <div id="view-focus" class="hidden space-y-6 max-w-4xl mx-auto">
+                <div class="glass-card p-6 md:p-10 rounded-2xl text-center space-y-8 border-t-4 border-neon-cyan">
+                    
+                    <div class="space-y-2">
+                        <span class="text-xs font-display font-bold text-neon-cyan tracking-widest uppercase">Deep Focus Deck</span>
+                        <h2 class="text-2xl md:text-3xl font-display font-black text-white">POMODORO TRAINING BLOCK</h2>
+                        <p class="text-xs text-gray-400">High-density deliberate practice. Capped daily to preserve cognitive energy.</p>
+                    </div>
+
+                    <!-- Presets -->
+                    <div class="flex justify-center gap-3">
+                        <button onclick="setTimerPreset(25, 'focus')" class="timer-btn px-4 py-2 rounded-lg bg-slate-900 border border-neon-cyan/40 text-neon-cyan font-display font-bold text-xs uppercase hover:bg-neon-cyan hover:text-slate-950 transition">
+                            25m Focus Block (+50 XP)
+                        </button>
+                        <button onclick="setTimerPreset(50, 'focus')" class="timer-btn px-4 py-2 rounded-lg bg-slate-900 border border-neon-gold/40 text-neon-gold font-display font-bold text-xs uppercase hover:bg-neon-gold hover:text-slate-950 transition">
+                            50m Deep Block (+120 XP)
+                        </button>
+                        <button onclick="setTimerPreset(5, 'break')" class="timer-btn px-4 py-2 rounded-lg bg-slate-900 border border-slate-700 text-gray-400 font-display font-bold text-xs uppercase hover:bg-slate-800 transition">
+                            5m Rest
+                        </button>
+                    </div>
+
+                    <!-- Timer Display -->
+                    <div class="relative py-6">
+                        <div id="timer-display" class="font-display font-black text-6xl md:text-8xl tracking-widest text-white neon-text-cyan">
+                            25:00
+                        </div>
+                        <div id="timer-mode-label" class="text-xs font-display uppercase tracking-widest text-neon-cyan mt-2">
+                            Ready to Focus
+                        </div>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="flex justify-center items-center gap-4">
+                        <button id="timer-start-btn" onclick="toggleTimer()" class="w-36 py-3 rounded-xl bg-neon-cyan text-slate-950 font-display font-black text-sm uppercase tracking-wider hover:bg-cyan-300 transition neon-glow-cyan">
+                            <i class="fa-solid fa-play mr-1"></i> Start
+                        </button>
+                        <button onclick="resetTimer()" class="px-5 py-3 rounded-xl bg-slate-900 border border-slate-700 text-gray-300 font-display font-bold text-sm uppercase hover:bg-slate-800 transition">
+                            <i class="fa-solid fa-rotate-right mr-1"></i> Reset
+                        </button>
+                    </div>
+
+                    <!-- Floating Timer Options -->
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-xs font-display">
+                        <button id="float-btn" onclick="openFloatingTimer()" class="px-4 py-2 rounded-lg bg-slate-900 border border-neon-violet/50 text-neon-violet font-bold uppercase hover:bg-neon-violet hover:text-slate-950 transition">
+                            <i class="fa-solid fa-up-right-from-square mr-1"></i> <span id="float-btn-label">Float Timer</span>
+                        </button>
+                        <label class="flex items-center gap-2 text-gray-400 cursor-pointer">
+                            <input type="checkbox" id="opt-autofloat" onchange="saveTimerSetting('autoFloat', this.checked)" class="accent-sky-400"> Auto-float on Start
+                        </label>
+                        <label class="flex items-center gap-2 text-gray-400 cursor-pointer">
+                            <input type="checkbox" id="opt-notify" onchange="saveTimerSetting('notify', this.checked)" class="accent-sky-400"> Notify when done
+                        </label>
+                    </div>
+                    <p id="float-support-note" class="hidden text-[10px] text-gray-500 -mt-4">Floating window needs desktop Chrome or Edge. Use "Notify when done" in other browsers.</p>
+
+                    <!-- Daily Focus XP Meter -->
+                    <div class="max-w-md mx-auto pt-6 border-t border-slate-800/80 space-y-2">
+                        <div class="flex justify-between text-xs font-display">
+                            <span class="text-gray-400">Daily Focus XP Cap</span>
+                            <span class="text-neon-cyan"><span id="focus-xp-curr">0</span> / 600 XP</span>
+                        </div>
+                        <div class="w-full bg-slate-950 rounded-full h-2 border border-slate-800 overflow-hidden">
+                            <div id="focus-xp-bar" class="bg-neon-cyan h-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                        <p class="text-[10px] text-gray-500">Focus XP cap prevents over-studying fatigue and encourages healthy rest.</p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ================= VIEW: LECTURES ================= -->
+            <div id="view-lectures" class="hidden space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+                    <!-- Calendar -->
+                    <div class="glass-card p-5 rounded-xl lg:col-span-3 border-t-4 border-neon-cyan">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-display font-bold text-sm text-gray-300 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-calendar-days text-neon-cyan"></i> Lecture Calendar
+                            </h3>
+                            <div class="flex items-center gap-2">
+                                <button onclick="changeCalMonth(-1)" class="w-8 h-8 rounded-md bg-slate-900 border border-slate-700 text-gray-300 hover:border-neon-cyan transition"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                                <span id="cal-title" class="font-display font-bold text-sm text-white w-36 text-center">Month</span>
+                                <button onclick="changeCalMonth(1)" class="w-8 h-8 rounded-md bg-slate-900 border border-slate-700 text-gray-300 hover:border-neon-cyan transition"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                                <button onclick="goToToday()" class="px-2.5 h-8 rounded-md bg-slate-900 border border-slate-700 text-[10px] font-display font-bold uppercase text-neon-cyan hover:border-neon-cyan transition">Today</button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-7 gap-1 mb-1 text-center text-[10px] font-display uppercase tracking-wider text-gray-500">
+                            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                        </div>
+                        <div id="cal-grid" class="grid grid-cols-7 gap-1"></div>
+
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-4 pt-3 border-t border-slate-800 text-[10px] text-gray-400 font-display">
+                            <span class="uppercase tracking-wider text-gray-500">First-encounter understanding:</span>
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-neon-rose"></span> 1-4 Shaky</span>
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-neon-gold"></span> 5-7 Okay</span>
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-neon-emerald"></span> 8-10 Solid</span>
+                            <span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-neon-cyan"></span> Quest logged</span>
+                        </div>
+                    </div>
+
+                    <!-- Lecture Log Form -->
+                    <div class="glass-card p-5 rounded-xl lg:col-span-2 border-t-4 border-neon-gold">
+                        <h3 class="font-display font-bold text-sm text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-plus text-neon-gold"></i> Log a Lecture (+30 XP)
+                        </h3>
+                        <form id="lecture-form" onsubmit="handleLectureSubmit(event)" class="space-y-3">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[10px] font-display font-bold text-gray-400 uppercase mb-1">Lecture Date</label>
+                                    <input type="date" id="lec-date" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-neon-gold" style="color-scheme: dark;">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-display font-bold text-gray-400 uppercase mb-1">Branch</label>
+                                    <select id="lec-category" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-neon-gold">
+                                        <option value="" disabled selected>Select...</option>
+                                        <option value="MSTE">MSTE</option>
+                                        <option value="HGE">HGE</option>
+                                        <option value="PSAD">PSAD</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-display font-bold text-gray-400 uppercase mb-1">Topic</label>
+                                <input type="text" id="lec-topic" required placeholder="e.g. Trigonometry, Fluid Dynamics" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-neon-gold placeholder-slate-600">
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-display font-bold text-gray-400 uppercase mb-1">Lecture Title / Subtopic (optional)</label>
+                                <input type="text" id="lec-title" placeholder="e.g. Law of Sines and Cosines" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-neon-gold placeholder-slate-600">
+                            </div>
+
+                            <div class="space-y-1.5 pt-1">
+                                <div class="flex justify-between items-center">
+                                    <label class="text-[10px] font-display font-bold text-gray-400 uppercase">Understanding on First Encounter</label>
+                                    <span id="lec-understanding-display" class="font-display font-bold text-neon-gold text-sm">6 / 10</span>
+                                </div>
+                                <input type="range" id="lec-understanding" min="1" max="10" value="6" oninput="document.getElementById('lec-understanding-display').textContent = this.value + ' / 10'" class="w-full">
+                                <div class="flex justify-between text-[10px] text-gray-500 font-display">
+                                    <span>1 - Totally Lost</span>
+                                    <span>10 - Crystal Clear</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-display font-bold text-gray-400 uppercase mb-1">Notes (what clicked, what didn't)</label>
+                                <textarea id="lec-notes" rows="3" placeholder="e.g. Got the formulas but not when to use which." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-neon-gold placeholder-slate-600 resize-none"></textarea>
+                            </div>
+
+                            <button type="submit" class="w-full py-3 rounded-xl bg-neon-gold text-slate-950 font-display font-black text-xs uppercase tracking-wider hover:bg-amber-300 transition neon-glow-gold">
+                                Save Lecture
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Selected Day Detail -->
+                <div class="glass-card p-5 rounded-xl">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+                        <h3 id="day-detail-title" class="font-display font-bold text-sm text-neon-cyan uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-calendar-day"></i> Selected Day
+                        </h3>
+                        <span id="day-detail-sub" class="text-xs text-gray-500"></span>
+                    </div>
+                    <div id="day-detail-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+                </div>
+
+                <!-- All Lectures -->
+                <div class="glass-card p-5 rounded-xl">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800 mb-4">
+                        <h3 class="font-display font-bold text-sm text-gray-300 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-list text-neon-violet"></i> Lecture History
+                        </h3>
+                        <select id="lec-filter" onchange="renderLectureHistory()" class="bg-slate-900 border border-slate-700 text-xs font-display text-white rounded-md px-3 py-1.5 focus:outline-none focus:border-neon-cyan">
+                            <option value="ALL">All Branches</option>
+                            <option value="MSTE">MSTE</option>
+                            <option value="HGE">HGE</option>
+                            <option value="PSAD">PSAD</option>
+                        </select>
+                    </div>
+                    <div id="lecture-history" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- ================= VIEW 3: LOG QUEST ================= -->
+            <div id="view-log" class="hidden space-y-6 max-w-3xl mx-auto">
+                <div class="glass-card p-6 md:p-8 rounded-2xl border-t-4 border-neon-gold">
+                    <h2 class="font-display font-black text-xl text-white uppercase tracking-wider mb-6 flex items-center gap-2">
+                        <i class="fa-solid fa-pen-to-square text-neon-gold"></i> Log Test or Exercise Performance
+                    </h2>
+
+                    <form id="quest-form" onsubmit="handleQuestSubmit(event)" class="space-y-6">
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Category Select -->
+                            <div>
+                                <label class="block text-xs font-display font-bold text-gray-400 uppercase mb-1">Branch Category</label>
+                                <select id="form-category" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-neon-gold">
+                                    <option value="" disabled selected>Select Branch...</option>
+                                    <option value="MSTE">MSTE (Math, Surveying, Transpo)</option>
+                                    <option value="HGE">HGE (Hydraulics & Geotechnical)</option>
+                                    <option value="PSAD">PSAD (Structural Analysis & Design)</option>
+                                </select>
+                            </div>
+
+                            <!-- Quest Type -->
+                            <div>
+                                <label class="block text-xs font-display font-bold text-gray-400 uppercase mb-1">Quest Type</label>
+                                <select id="form-type" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-neon-gold">
+                                    <option value="Exercise">Exercise / Problem Set (+40 XP)</option>
+                                    <option value="Quiz">Timed Quiz (+80 XP)</option>
+                                    <option value="Assessment">Module Assessment (+150 XP)</option>
+                                    <option value="Mock Exam">Full Mock Exam (+250 XP)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Topic Name -->
+                        <div>
+                            <label class="block text-xs font-display font-bold text-gray-400 uppercase mb-1">Topic Name</label>
+                            <input type="text" id="form-topic" required placeholder="e.g. Trigonometry, Fluid Dynamics, Moment Distribution" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-neon-gold placeholder-slate-600">
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <!-- Try Count -->
+                            <div>
+                                <label class="block text-xs font-display font-bold text-gray-400 uppercase mb-1">Attempt #</label>
+                                <input type="number" id="form-try" required min="1" value="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-neon-gold">
+                            </div>
+
+                            <!-- Score -->
+                            <div>
+                                <label class="block text-xs font-display font-bold text-gray-400 uppercase mb-1">Your Score</label>
+                                <input type="number" id="form-score" required min="0" step="0.1" oninput="calculateFormPercentage()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-neon-gold">
+                            </div>
+
+                            <!-- Total -->
+                            <div>
+                                <label class="block text-xs font-display font-bold text-gray-400 uppercase mb-1">Max Score</label>
+                                <input type="number" id="form-total" required min="1" step="0.1" oninput="calculateFormPercentage()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-neon-gold">
+                            </div>
+                        </div>
+
+                        <!-- Confidence Slider -->
+                        <div class="space-y-2 pt-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <label class="font-display font-bold text-gray-400 uppercase">Daily Confidence Rating</label>
+                                <span id="confidence-val-display" class="font-display font-bold text-neon-gold text-sm">7 / 10</span>
+                            </div>
+                            <input type="range" id="form-confidence" min="1" max="10" value="7" oninput="document.getElementById('confidence-val-display').textContent = this.value + ' / 10'" class="w-full">
+                            <div class="flex justify-between text-[10px] text-gray-500 font-display">
+                                <span>1 - Pure Guessing</span>
+                                <span>5 - Medium Friction</span>
+                                <span>10 - Flawless Mastery</span>
+                            </div>
+                        </div>
+
+                        <!-- Percentage & Submit Row -->
+                        <div class="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div>
+                                <span class="text-[10px] font-display uppercase tracking-wider text-gray-400">Score Yield</span>
+                                <div id="form-percentage-display" class="font-display font-black text-3xl text-gray-500">0.0%</div>
+                            </div>
+
+                            <button type="submit" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-neon-gold text-slate-950 font-display font-black text-sm uppercase tracking-wider hover:bg-amber-300 transition neon-glow-gold">
+                                Log Session & Claim XP
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+            <!-- ================= VIEW 4: DAILY MASTERY CALIBRATION ================= -->
+            <div id="view-mastery" class="hidden space-y-6 max-w-4xl mx-auto">
+                <div class="glass-card p-6 md:p-8 rounded-2xl space-y-6">
+                    <div class="border-b border-slate-800 pb-4">
+                        <h2 class="font-display font-black text-xl text-white uppercase tracking-wider">Daily Mastery Check-In</h2>
+                        <p class="text-xs text-gray-400">Rate your felt understanding daily without retaking tests to track confidence drift.</p>
+                    </div>
+
+                    <div id="mastery-topics-container" class="space-y-4">
+                        <!-- Dynamic content -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- ================= JAVASCRIPT LOGIC ================= -->
+    <script>
+        // --- Data Store Keys & Initial State ---
+        const STORE_KEY = 'ce_rpg_review_tracker_v2';
+        
+        let state = {
+            player: { level: 1, xp: 0, dailyFocusXP: 0, lastFocusDate: '' },
+            buffs: { sleep: false, workout: false, hydration: false },
+            sessions: [], // { id, category, topic, type, tryNum, score, total, percentage, confidence, timestamp }
+            dailyMastery: {}, // { "Trigonometry": { "YYYY-MM-DD": 8 } }
+            lectures: [], // { id, date, category, topic, title, understanding, notes, timestamp }
+            settings: { autoFloat: false, notify: false }
+        };
+
+        // Lecture calendar view state
+        let calYear = new Date().getFullYear();
+        let calMonth = new Date().getMonth();
+        let selectedDate = '';
+
+        // --- RPG Titles Matrix ---
+        const RPG_TITLES = [
+            { lvl: 1, title: 'Cadence Trainee' },
+            { lvl: 4, title: 'Junior CE Analyst' },
+            { lvl: 8, title: 'Field Surveyor' },
+            { lvl: 12, title: 'MSTE Specialist' },
+            { lvl: 16, title: 'Geotechnical Architect' },
+            { lvl: 20, title: 'Structural Strategist' },
+            { lvl: 25, title: 'Board Exam Master' }
+        ];
+
+        // Chart Global Instances
+        let ringChartInstance = null;
+        let lineChartInstance = null;
+
+        // Pomodoro State
+        let timerInterval = null;
+        let timerSecondsLeft = 25 * 60;
+        let timerTotalSeconds = 25 * 60;
+        let timerIsRunning = false;
+        let timerMode = 'focus'; // 'focus' or 'break'
+
+        // Audio Context for Web Audio Synthesizer (No external audio files needed)
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            return audioCtx;
+        }
+
+        function playSound(freq, duration, type='sine') {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        function playLevelUpSound() {
+            setTimeout(() => playSound(523.25, 0.15), 0);   // C5
+            setTimeout(() => playSound(659.25, 0.15), 150); // E5
+            setTimeout(() => playSound(783.99, 0.3), 300);  // G5
+        }
+
+        // --- Initialization ---
+        window.addEventListener('DOMContentLoaded', () => {
+            loadState();
+            checkFocusDateReset();
+            updateHUD();
+            updateBuffUI();
+            renderDashboard();
+            initCharts();
+            selectedDate = getTodayDateStr();
+            document.getElementById('lec-date').value = selectedDate;
+            state.settings = { autoFloat: false, notify: false, ...(state.settings || {}) };
+            document.getElementById('opt-autofloat').checked = !!state.settings.autoFloat;
+            document.getElementById('opt-notify').checked = !!state.settings.notify;
+            if (!('documentPictureInPicture' in window)) {
+                document.getElementById('float-support-note').classList.remove('hidden');
+            }
+        });
+
+        function loadState() {
+            const raw = localStorage.getItem(STORE_KEY);
+            if (raw) {
+                try {
+                    const parsed = JSON.parse(raw);
+                    state = { ...state, ...parsed };
+                } catch(e) {
+                    console.error("Failed to parse storage:", e);
+                }
+            }
+        }
+
+        function saveState() {
+            localStorage.setItem(STORE_KEY, JSON.stringify(state));
+        }
+
+        // Local-time date string (YYYY-MM-DD). toISOString() uses UTC, which gives
+        // the previous day for early-morning study sessions in UTC+ time zones.
+        function dateToStr(d) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+
+        function getTodayDateStr() {
+            return dateToStr(new Date());
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        function toTitleCase(str) {
+            return str.trim().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+        }
+
+        function checkFocusDateReset() {
+            const today = getTodayDateStr();
+            if (state.player.lastFocusDate !== today) {
+                state.player.lastFocusDate = today;
+                state.player.dailyFocusXP = 0;
+                saveState();
+            }
+        }
+
+        // --- Multipliers & XP Core ---
+        function getActiveMultiplier() {
+            let mult = 1.0;
+            if (state.buffs.sleep) mult += 0.15;
+            if (state.buffs.workout) mult += 0.15;
+            if (state.buffs.hydration) mult += 0.15;
+            return parseFloat(mult.toFixed(2));
+        }
+
+        function getRequiredXP(level) {
+            return level * 200;
+        }
+
+        function addXP(amount, source) {
+            const mult = getActiveMultiplier();
+            const earned = Math.round(amount * mult);
+
+            state.player.xp += earned;
+            
+            let req = getRequiredXP(state.player.level);
+            let leveledUp = false;
+
+            while (state.player.xp >= req) {
+                state.player.xp -= req;
+                state.player.level++;
+                req = getRequiredXP(state.player.level);
+                leveledUp = true;
+            }
+
+            saveState();
+            updateHUD();
+
+            if (leveledUp) {
+                playLevelUpSound();
+                showToast("LEVEL UP!", `You advanced to Level ${state.player.level}!`, "fa-solid fa-trophy");
+            } else {
+                playSound(880, 0.1);
+                showToast(`+${earned} XP Earned`, `Source: ${source} (x${mult} Multiplier)`);
+            }
+        }
+
+        function updateHUD() {
+            const req = getRequiredXP(state.player.level);
+            const percent = Math.min(100, (state.player.xp / req) * 100);
+
+            document.getElementById('hud-level').textContent = state.player.level;
+            document.getElementById('hud-xp-curr').textContent = state.player.xp;
+            document.getElementById('hud-xp-req').textContent = req;
+            document.getElementById('hud-xp-bar').style.width = `${percent}%`;
+
+            // Active Title
+            let title = RPG_TITLES[0].title;
+            for (let t of RPG_TITLES) {
+                if (state.player.level >= t.lvl) title = t.title;
+            }
+            document.getElementById('hud-title').textContent = title;
+
+            // Multiplier
+            const mult = getActiveMultiplier();
+            document.getElementById('hud-multiplier').textContent = `${mult.toFixed(2)}x`;
+            
+            // Focus Deck Progress
+            document.getElementById('focus-xp-curr').textContent = state.player.dailyFocusXP;
+            document.getElementById('focus-xp-bar').style.width = `${Math.min(100, (state.player.dailyFocusXP / 600) * 100)}%`;
+        }
+
+        // --- Buffs Toggle ---
+        function toggleBuff(buffName) {
+            state.buffs[buffName] = !state.buffs[buffName];
+            saveState();
+            updateBuffUI();
+            updateHUD();
+        }
+
+        function updateBuffUI() {
+            ['sleep', 'workout', 'hydration'].forEach(b => {
+                const btn = document.getElementById(`buff-${b}`);
+                if (state.buffs[b]) {
+                    btn.className = "px-3 py-1 rounded-md border border-neon-emerald bg-emerald-950/40 text-white font-sans transition flex items-center gap-1.5 neon-glow-emerald";
+                } else {
+                    btn.className = "px-3 py-1 rounded-md border border-slate-800 bg-slate-900 text-gray-400 hover:border-slate-700 transition flex items-center gap-1.5 font-sans";
+                }
+            });
+        }
+
+        // --- Tab Navigation ---
+        function switchTab(tab) {
+            document.querySelectorAll('.nav-tab').forEach(b => {
+                b.className = "nav-tab px-4 py-2 rounded-lg text-gray-400 hover:text-white flex items-center gap-2";
+            });
+            const btn = document.getElementById(`tab-${tab}`);
+            btn.className = "nav-tab px-4 py-2 rounded-lg bg-slate-800 text-neon-cyan font-bold border border-neon-cyan/30 flex items-center gap-2";
+
+            ['dashboard', 'focus', 'lectures', 'log', 'mastery'].forEach(v => {
+                document.getElementById(`view-${v}`).classList.add('hidden');
+            });
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+
+            if (tab === 'dashboard') renderDashboard();
+            if (tab === 'mastery') renderMasteryCheckin();
+            if (tab === 'lectures') renderLecturesView();
+        }
+
+        function showToast(title, msg, icon='fa-solid fa-circle-check') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-title').textContent = title;
+            document.getElementById('toast-msg').textContent = msg;
+            document.getElementById('toast-icon').className = `${icon} text-neon-cyan text-xl`;
+
+            toast.classList.remove('hidden');
+            setTimeout(() => { toast.classList.add('hidden'); }, 3500);
+        }
+
+        // --- Form Calculation & Quest Submission ---
+        function calculateFormPercentage() {
+            const score = parseFloat(document.getElementById('form-score').value) || 0;
+            const total = parseFloat(document.getElementById('form-total').value) || 0;
+            const display = document.getElementById('form-percentage-display');
+
+            if (total > 0) {
+                const p = ((score / total) * 100).toFixed(1);
+                display.textContent = `${p}%`;
+                if (p >= 85) display.className = "font-display font-black text-3xl text-neon-emerald neon-text";
+                else if (p >= 70) display.className = "font-display font-black text-3xl text-neon-gold neon-text";
+                else display.className = "font-display font-black text-3xl text-neon-rose";
+            } else {
+                display.textContent = "0.0%";
+                display.className = "font-display font-black text-3xl text-gray-500";
+            }
+        }
+
+        function handleQuestSubmit(e) {
+            e.preventDefault();
+
+            const category = document.getElementById('form-category').value;
+            const type = document.getElementById('form-type').value;
+            const rawTopic = document.getElementById('form-topic').value.trim();
+            const topic = rawTopic.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+            const tryNum = parseInt(document.getElementById('form-try').value) || 1;
+            const score = parseFloat(document.getElementById('form-score').value);
+            const total = parseFloat(document.getElementById('form-total').value);
+            const confidence = parseInt(document.getElementById('form-confidence').value);
+
+            if (score > total || total <= 0) {
+                alert("Score cannot exceed Max Score!");
+                return;
+            }
+
+            const percentage = parseFloat(((score / total) * 100).toFixed(1));
+
+            const entry = {
+                id: Date.now().toString(),
+                category,
+                topic,
+                type,
+                tryNum,
+                score,
+                total,
+                percentage,
+                confidence,
+                timestamp: new Date().toISOString()
+            };
+
+            state.sessions.push(entry);
+
+            // Log today's confidence rating
+            if (!state.dailyMastery[topic]) state.dailyMastery[topic] = {};
+            state.dailyMastery[topic][getTodayDateStr()] = confidence;
+
+            // Base XP yields
+            let baseXP = 40;
+            if (type === 'Quiz') baseXP = 80;
+            if (type === 'Assessment') baseXP = 150;
+            if (type === 'Mock Exam') baseXP = 250;
+
+            // Bonus for high score percentage
+            baseXP += Math.round(percentage * 0.5);
+
+            addXP(baseXP, `${type} Completed`);
+            
+            e.target.reset();
+            calculateFormPercentage();
+            switchTab('dashboard');
+        }
+
+        // --- Dashboard & Analytics Rendering ---
+        function renderDashboard() {
+            // Category Score Averages
+            const categories = ['MSTE', 'HGE', 'PSAD'];
+            let categoryAverages = { MSTE: 0, HGE: 0, PSAD: 0 };
+            let categoryCounts = { MSTE: 0, HGE: 0, PSAD: 0 };
+
+            state.sessions.forEach(s => {
+                categoryAverages[s.category] += s.percentage;
+                categoryCounts[s.category]++;
+            });
+
+            categories.forEach(cat => {
+                const count = categoryCounts[cat];
+                const avg = count ? (categoryAverages[cat] / count).toFixed(1) : 0;
+                
+                document.getElementById(`card-${cat.toLowerCase()}-score`).textContent = `${avg}%`;
+                document.getElementById(`card-${cat.toLowerCase()}-count`).textContent = count;
+                
+                let statusText = "Unrated";
+                if (count > 0) {
+                    if (avg >= 80) statusText = "Optimal";
+                    else if (avg >= 70) statusText = "Passing";
+                    else statusText = "Critical";
+                }
+                document.getElementById(`card-${cat.toLowerCase()}-status`).textContent = statusText;
+            });
+
+            // Update Doughnut Chart
+            const ringData = [
+                categoryCounts.MSTE ? (categoryAverages.MSTE / categoryCounts.MSTE) : 0,
+                categoryCounts.HGE ? (categoryAverages.HGE / categoryCounts.HGE) : 0,
+                categoryCounts.PSAD ? (categoryAverages.PSAD / categoryCounts.PSAD) : 0
+            ];
+
+            const totalAvg = ringData.reduce((a,b)=>a+b, 0) / 3;
+            document.getElementById('ring-avg-display').textContent = `${totalAvg.toFixed(1)}%`;
+
+            renderRingChart(ringData);
+
+            // Populate Line Chart Dropdown & Targets
+            populateTopicDropdown();
+            renderWeaknessTargets();
+        }
+
+        function populateTopicDropdown() {
+            const select = document.getElementById('chart-topic-select');
+            const currentVal = select.value;
+            select.innerHTML = '<option value="">Select Topic to Plot...</option>';
+
+            const topics = [...new Set(state.sessions.map(s => s.topic))].sort();
+            
+            topics.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t;
+                opt.textContent = t;
+                select.appendChild(opt);
+            });
+
+            if (currentVal && topics.includes(currentVal)) {
+                select.value = currentVal;
+            } else if (topics.length > 0) {
+                select.value = topics[0];
+            }
+
+            renderLineChart();
+        }
+
+        function renderWeaknessTargets() {
+            const container = document.getElementById('weakness-list');
+            container.innerHTML = '';
+
+            const topics = [...new Set(state.sessions.map(s => s.topic))];
+            let list = [];
+
+            topics.forEach(topic => {
+                const tSessions = state.sessions.filter(s => s.topic === topic).sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+                if (tSessions.length === 0) return;
+
+                const latest = tSessions[tSessions.length - 1];
+                const attempts = tSessions.length;
+                const category = latest.category;
+
+                let scoreProblem = latest.percentage < 75;
+                let lowConfidence = latest.confidence <= 5;
+                let highFriction = attempts >= 3 && latest.percentage < 85;
+
+                if (scoreProblem || lowConfidence || highFriction) {
+                    list.push({
+                        topic,
+                        category,
+                        percentage: latest.percentage,
+                        confidence: latest.confidence,
+                        attempts,
+                        severity: (latest.percentage < 60 ? 3 : 1) + (lowConfidence ? 2 : 0) + (attempts >= 3 ? 2 : 0)
+                    });
+                }
+            });
+
+            // Topics heard in lecture that scored shaky on first encounter and have no quest logged yet
+            const lectureTopics = [...new Set(state.lectures.map(l => l.topic))];
+            lectureTopics.forEach(topic => {
+                if (topics.includes(topic)) return;
+                const lecs = state.lectures.filter(l => l.topic === topic).sort((a,b) => a.date.localeCompare(b.date) || a.timestamp.localeCompare(b.timestamp));
+                const latest = lecs[lecs.length - 1];
+                const first = lecs[0];
+                if (first.understanding <= 5) {
+                    list.push({
+                        topic,
+                        category: latest.category,
+                        percentage: null,
+                        confidence: getLatestMastery(topic) ?? first.understanding,
+                        attempts: 0,
+                        severity: first.understanding <= 3 ? 4 : 2
+                    });
+                }
+            });
+
+            list.sort((a,b) => b.severity - a.severity);
+
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full py-6 text-center text-xs text-gray-500 font-display">
+                        <i class="fa-solid fa-circle-check text-neon-emerald mr-1"></i> No critical target topics found. Keep logging sessions!
+                    </div>
+                `;
+                return;
+            }
+
+            list.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-900 border border-slate-800 p-3.5 rounded-lg flex justify-between items-center";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-[9px] font-display font-bold px-1.5 py-0.5 bg-slate-800 text-neon-cyan border border-neon-cyan/20 rounded">${item.category}</span>
+                            <h4 class="font-display font-bold text-sm text-white">${escapeHtml(item.topic)}</h4>
+                        </div>
+                        <p class="text-[11px] text-gray-400 mt-1">
+                            ${item.percentage === null
+                                ? `<b class="text-neon-rose">Heard in lecture, no quest yet</b> | `
+                                : `Latest: <b class="${item.percentage >= 70 ? 'text-neon-gold' : 'text-neon-rose'}">${item.percentage}%</b> | `}
+                            Confidence: <b>${item.confidence}/10</b> |
+                            Tries: <b>${item.attempts}</b>
+                        </p>
+                    </div>
+                    <button data-topic="${escapeHtml(item.topic)}" data-category="${item.category}" onclick="quickLogTarget(this.dataset.topic, this.dataset.category)" class="px-2.5 py-1 text-xs font-display font-bold text-neon-cyan bg-slate-800 border border-neon-cyan/30 rounded hover:bg-neon-cyan hover:text-slate-950 transition">
+                        Target
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function quickLogTarget(topic, category) {
+            switchTab('log');
+            document.getElementById('form-topic').value = topic;
+            document.getElementById('form-category').value = category;
+        }
+
+        // --- Chart.js Implementations ---
+        function initCharts() {
+            renderRingChart([0,0,0]);
+            renderLineChart();
+        }
+
+        function renderRingChart(dataArr) {
+            const ctx = document.getElementById('ringChart').getContext('2d');
+            if (ringChartInstance) ringChartInstance.destroy();
+
+            const hasData = dataArr.some(v => v > 0);
+
+            ringChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['MSTE', 'HGE', 'PSAD'],
+                    datasets: [{
+                        data: hasData ? dataArr : [1, 1, 1],
+                        backgroundColor: hasData ? ['#38bdf8', '#fbbf24', '#a78bfa'] : ['#1e293b', '#1e293b', '#1e293b'],
+                        borderWidth: 2,
+                        borderColor: '#0f172a'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            enabled: hasData,
+                            callbacks: { label: (ctx) => ` ${ctx.label}: ${ctx.parsed.toFixed(1)}%` }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderLineChart() {
+            const ctx = document.getElementById('lineChart').getContext('2d');
+            const topic = document.getElementById('chart-topic-select').value;
+
+            if (lineChartInstance) lineChartInstance.destroy();
+
+            if (!topic) {
+                lineChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: { labels: [], datasets: [] },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: { display: true, text: 'SELECT A TOPIC TO PLOT PROGRESSION', color: '#64748b', font: { family: 'Orbitron', size: 12 } }
+                        }
+                    }
+                });
+                return;
+            }
+
+            const sessions = state.sessions.filter(s => s.topic === topic).sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+            const labels = sessions.map((s, idx) => `Try #${s.tryNum} (${s.type})`);
+            const scoreData = sessions.map(s => s.percentage);
+            const confData = sessions.map(s => s.confidence * 10); // Scale 1-10 to 10-100%
+
+            lineChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Score Yield (%)',
+                            data: scoreData,
+                            borderColor: '#38bdf8',
+                            backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Confidence Rating (Scaled %)',
+                            data: confData,
+                            borderColor: '#fbbf24',
+                            borderDash: [5, 5],
+                            tension: 0.3,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            min: 0, max: 100,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#f3f4f6', font: { family: 'Rajdhani' } } }
+                    }
+                }
+            });
+        }
+
+        // --- Daily Mastery Check-In ---
+        function renderMasteryCheckin() {
+            const container = document.getElementById('mastery-topics-container');
+            container.innerHTML = '';
+
+            const topics = [...new Set([...state.sessions.map(s => s.topic), ...state.lectures.map(l => l.topic)])].sort();
+
+            if (topics.length === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-xs text-gray-500 font-display">No topics logged yet.</div>`;
+                return;
+            }
+
+            const today = getTodayDateStr();
+
+            topics.forEach(t => {
+                const existing = state.dailyMastery[t] && state.dailyMastery[t][today];
+                const card = document.createElement('div');
+                card.className = "bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col md:flex-row justify-between items-center gap-4";
+
+                const key = masteryKey(t);
+                card.innerHTML = `
+                    <div>
+                        <h4 class="font-display font-bold text-white text-base">${escapeHtml(t)}</h4>
+                        <p class="text-xs text-gray-400">Daily check-in for calibration</p>
+                    </div>
+
+                    <div class="flex items-center space-x-4 w-full md:w-auto justify-end">
+                        <input type="range" min="1" max="10" value="${existing || 7}" id="slider-mastery-${key}" oninput="document.getElementById('val-mastery-${key}').textContent = this.value" class="w-36">
+                        <span id="val-mastery-${key}" class="font-display font-bold text-neon-gold text-sm w-6">${existing || 7}</span>
+                        <button data-topic="${escapeHtml(t)}" onclick="saveDailyMastery(this.dataset.topic)" class="px-3 py-1.5 rounded bg-slate-800 border border-neon-cyan/40 text-neon-cyan font-display font-bold text-xs hover:bg-neon-cyan hover:text-slate-950 transition">
+                            ${existing ? 'Update' : 'Sync'}
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function saveDailyMastery(topic) {
+            const slider = document.getElementById(`slider-mastery-${masteryKey(topic)}`);
+            const val = parseInt(slider.value);
+
+            if (!state.dailyMastery[topic]) state.dailyMastery[topic] = {};
+            state.dailyMastery[topic][getTodayDateStr()] = val;
+
+            saveState();
+            addXP(15, 'Daily Calibration');
+            renderMasteryCheckin();
+        }
+
+        // --- Lectures & Calendar ---
+        const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+        function masteryKey(topic) {
+            return topic.replace(/[^a-zA-Z0-9]+/g, '-');
+        }
+
+        function getLatestMastery(topic) {
+            const entries = state.dailyMastery[topic];
+            if (!entries) return null;
+            const dates = Object.keys(entries).sort();
+            return dates.length ? entries[dates[dates.length - 1]] : null;
+        }
+
+        function understandingColor(v) {
+            if (v <= 4) return { bg: 'bg-neon-rose', text: 'text-neon-rose', label: 'Shaky' };
+            if (v <= 7) return { bg: 'bg-neon-gold', text: 'text-neon-gold', label: 'Okay' };
+            return { bg: 'bg-neon-emerald', text: 'text-neon-emerald', label: 'Solid' };
+        }
+
+        function formatDateLong(dateStr) {
+            const [y, m, d] = dateStr.split('-').map(Number);
+            return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        function renderLecturesView() {
+            renderCalendar();
+            renderDayDetail();
+            renderLectureHistory();
+        }
+
+        function changeCalMonth(delta) {
+            calMonth += delta;
+            if (calMonth < 0) { calMonth = 11; calYear--; }
+            if (calMonth > 11) { calMonth = 0; calYear++; }
+            renderCalendar();
+        }
+
+        function goToToday() {
+            const now = new Date();
+            calYear = now.getFullYear();
+            calMonth = now.getMonth();
+            selectDate(getTodayDateStr());
+        }
+
+        function selectDate(dateStr) {
+            selectedDate = dateStr;
+            document.getElementById('lec-date').value = dateStr;
+            const [y, m] = dateStr.split('-').map(Number);
+            calYear = y;
+            calMonth = m - 1;
+            renderCalendar();
+            renderDayDetail();
+        }
+
+        function renderCalendar() {
+            document.getElementById('cal-title').textContent = `${MONTH_NAMES[calMonth]} ${calYear}`;
+            const grid = document.getElementById('cal-grid');
+            grid.innerHTML = '';
+
+            const lecturesByDate = {};
+            state.lectures.forEach(l => {
+                (lecturesByDate[l.date] = lecturesByDate[l.date] || []).push(l);
+            });
+            const questDates = new Set(state.sessions.map(s => dateToStr(new Date(s.timestamp))));
+
+            const firstDow = new Date(calYear, calMonth, 1).getDay();
+            const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+            const today = getTodayDateStr();
+
+            for (let i = 0; i < firstDow; i++) {
+                const blank = document.createElement('div');
+                blank.className = 'h-16 sm:h-20';
+                grid.appendChild(blank);
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const lecs = lecturesByDate[dateStr] || [];
+                const isToday = dateStr === today;
+                const isSelected = dateStr === selectedDate;
+
+                const cell = document.createElement('button');
+                cell.type = 'button';
+                cell.dataset.date = dateStr;
+                cell.onclick = () => selectDate(dateStr);
+
+                let border = 'border-slate-800 hover:border-slate-600';
+                if (isSelected) border = 'border-neon-cyan neon-glow-cyan';
+                else if (isToday) border = 'border-neon-gold/60';
+                cell.className = `h-16 sm:h-20 rounded-lg border ${border} bg-slate-900/70 p-1.5 flex flex-col justify-between items-stretch text-left transition`;
+
+                const dots = lecs.slice(0, 4).map(l => `<span class="w-2 h-2 rounded-full ${understandingColor(l.understanding).bg}"></span>`).join('');
+                const extra = lecs.length > 4 ? `<span class="text-[9px] text-gray-400">+${lecs.length - 4}</span>` : '';
+                const questBar = questDates.has(dateStr) ? '<span class="block h-0.5 rounded bg-neon-cyan"></span>' : '';
+
+                cell.innerHTML = `
+                    <span class="text-xs font-display font-bold ${isToday ? 'text-neon-gold' : 'text-gray-300'}">${day}</span>
+                    <div class="space-y-1">
+                        <div class="flex flex-wrap items-center gap-1">${dots}${extra}</div>
+                        ${questBar}
+                    </div>
+                `;
+                grid.appendChild(cell);
+            }
+        }
+
+        function buildLectureCard(l) {
+            const c = understandingColor(l.understanding);
+            const now = getLatestMastery(l.topic);
+            let nowHtml = '';
+            if (now !== null) {
+                const diff = now - l.understanding;
+                const arrow = diff > 0 ? `<span class="text-neon-emerald">▲ +${diff}</span>` : diff < 0 ? `<span class="text-neon-rose">▼ ${diff}</span>` : `<span class="text-gray-500">no change</span>`;
+                nowHtml = `<span class="text-[11px] text-gray-400">Now: <b class="text-white">${now}/10</b> ${arrow}</span>`;
+            }
+
+            const card = document.createElement('div');
+            card.className = 'bg-slate-900 border border-slate-800 p-3.5 rounded-lg';
+            card.innerHTML = `
+                <div class="flex justify-between items-start gap-3">
+                    <div class="min-w-0">
+                        <div class="flex items-center flex-wrap gap-2">
+                            <span class="text-[9px] font-display font-bold px-1.5 py-0.5 bg-slate-800 text-neon-cyan border border-neon-cyan/20 rounded">${escapeHtml(l.category)}</span>
+                            <h4 class="font-display font-bold text-sm text-white">${escapeHtml(l.topic)}</h4>
+                        </div>
+                        ${l.title ? `<p class="text-xs text-gray-300 mt-1">${escapeHtml(l.title)}</p>` : ''}
+                    </div>
+                    <button data-id="${l.id}" onclick="deleteLecture(this.dataset.id)" title="Delete lecture" class="text-gray-600 hover:text-neon-rose transition shrink-0">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex items-center flex-wrap gap-x-4 gap-y-1 mt-2">
+                    <span class="text-[11px] text-gray-400">First encounter: <b class="${c.text}">${l.understanding}/10 (${c.label})</b></span>
+                    ${nowHtml}
+                </div>
+                ${l.notes ? `<p class="text-xs text-gray-400 mt-2 whitespace-pre-wrap border-t border-slate-800 pt-2">${escapeHtml(l.notes)}</p>` : ''}
+            `;
+            return card;
+        }
+
+        function renderDayDetail() {
+            const list = document.getElementById('day-detail-list');
+            list.innerHTML = '';
+            if (!selectedDate) return;
+
+            document.getElementById('day-detail-title').innerHTML = `<i class="fa-solid fa-calendar-day"></i> ${formatDateLong(selectedDate)}`;
+
+            const lecs = state.lectures.filter(l => l.date === selectedDate).sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+            const quests = state.sessions.filter(s => dateToStr(new Date(s.timestamp)) === selectedDate);
+            document.getElementById('day-detail-sub').textContent = `${lecs.length} lecture${lecs.length === 1 ? '' : 's'} | ${quests.length} quest${quests.length === 1 ? '' : 's'} logged`;
+
+            if (lecs.length === 0 && quests.length === 0) {
+                list.innerHTML = `<div class="col-span-full py-6 text-center text-xs text-gray-500 font-display">Nothing logged for this day. Use the form to add a lecture.</div>`;
+                return;
+            }
+
+            lecs.forEach(l => list.appendChild(buildLectureCard(l)));
+
+            quests.forEach(s => {
+                const card = document.createElement('div');
+                card.className = 'bg-slate-900 border border-cyan-950 p-3.5 rounded-lg';
+                card.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="text-[9px] font-display font-bold px-1.5 py-0.5 bg-slate-800 text-neon-gold border border-neon-gold/20 rounded">${escapeHtml(s.type)}</span>
+                        <h4 class="font-display font-bold text-sm text-white">${escapeHtml(s.topic)}</h4>
+                    </div>
+                    <p class="text-[11px] text-gray-400 mt-1">Score: <b class="text-white">${s.percentage}%</b> | Confidence: <b>${s.confidence}/10</b> | Try #${s.tryNum}</p>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function renderLectureHistory() {
+            const container = document.getElementById('lecture-history');
+            container.innerHTML = '';
+            const filter = document.getElementById('lec-filter').value;
+
+            const lecs = state.lectures
+                .filter(l => filter === 'ALL' || l.category === filter)
+                .sort((a, b) => b.date.localeCompare(a.date) || b.timestamp.localeCompare(a.timestamp));
+
+            if (lecs.length === 0) {
+                container.innerHTML = `<div class="py-6 text-center text-xs text-gray-500 font-display">No lectures logged yet.</div>`;
+                return;
+            }
+
+            lecs.forEach(l => {
+                const wrap = document.createElement('div');
+                wrap.className = 'grid grid-cols-1 sm:grid-cols-[8rem_1fr] gap-2 items-start';
+                wrap.innerHTML = `<button type="button" data-date="${l.date}" onclick="selectDate(this.dataset.date)" class="text-left text-xs font-display font-bold text-neon-cyan hover:underline pt-3">${l.date}</button>`;
+                wrap.appendChild(buildLectureCard(l));
+                container.appendChild(wrap);
+            });
+        }
+
+        function handleLectureSubmit(e) {
+            e.preventDefault();
+
+            const date = document.getElementById('lec-date').value;
+            const category = document.getElementById('lec-category').value;
+            const topic = toTitleCase(document.getElementById('lec-topic').value);
+            const title = document.getElementById('lec-title').value.trim();
+            const understanding = parseInt(document.getElementById('lec-understanding').value);
+            const notes = document.getElementById('lec-notes').value.trim();
+
+            if (!date || !category || !topic) return;
+
+            state.lectures.push({
+                id: Date.now().toString(),
+                date, category, topic, title, understanding, notes,
+                timestamp: new Date().toISOString()
+            });
+
+            // First-encounter rating seeds the daily calibration history for this topic (never overwrites an existing day entry)
+            if (!state.dailyMastery[topic]) state.dailyMastery[topic] = {};
+            if (state.dailyMastery[topic][date] === undefined) {
+                state.dailyMastery[topic][date] = understanding;
+            }
+
+            saveState();
+            addXP(30, 'Lecture Logged');
+
+            e.target.reset();
+            document.getElementById('lec-understanding-display').textContent = '6 / 10';
+            selectDate(date);
+            renderLectureHistory();
+        }
+
+        function deleteLecture(id) {
+            if (!confirm('Delete this lecture entry?')) return;
+            state.lectures = state.lectures.filter(l => l.id !== id);
+            saveState();
+            renderLecturesView();
+        }
+
+        // --- Pomodoro Timer Logic ---
+        function setTimerPreset(mins, mode) {
+            if (timerIsRunning) resetTimer();
+            timerMode = mode;
+            timerTotalSeconds = mins * 60;
+            timerSecondsLeft = timerTotalSeconds;
+            document.getElementById('timer-mode-label').textContent = mode === 'focus' ? `${mins}m Focus Block` : `${mins}m Rest Period`;
+            updateTimerButtons();
+            updateTimerDisplay();
+        }
+
+        let timerEndTime = 0;
+        let pipWindow = null;
+
+        function saveTimerSetting(key, value) {
+            state.settings[key] = value;
+            saveState();
+            if (key === 'notify' && value && 'Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+
+        function formatTimer(secs) {
+            return `${String(Math.floor(secs / 60)).padStart(2, '0')}:${String(secs % 60).padStart(2, '0')}`;
+        }
+
+        function updateTimerDisplay() {
+            const text = formatTimer(timerSecondsLeft);
+            document.getElementById('timer-display').textContent = text;
+            if (pipWindow) {
+                const d = pipWindow.document;
+                d.getElementById('pip-time').textContent = text;
+                d.getElementById('pip-label').textContent = document.getElementById('timer-mode-label').textContent;
+            }
+            document.title = timerIsRunning ? `${text} - CE Review Master` : 'Civil Engineering Review Master - RPG Edition';
+        }
+
+        function updateTimerButtons() {
+            let label, icon;
+            if (timerIsRunning) { label = 'Pause'; icon = 'fa-pause'; }
+            else if (timerSecondsLeft < timerTotalSeconds && timerSecondsLeft > 0) { label = 'Resume'; icon = 'fa-play'; }
+            else { label = 'Start'; icon = 'fa-play'; }
+            document.getElementById('timer-start-btn').innerHTML = `<i class="fa-solid ${icon} mr-1"></i> ${label}`;
+            if (pipWindow) pipWindow.document.getElementById('pip-toggle').textContent = label;
+        }
+
+        function toggleTimer() {
+            if (timerIsRunning) {
+                clearInterval(timerInterval);
+                timerIsRunning = false;
+                timerSecondsLeft = Math.max(0, Math.ceil((timerEndTime - Date.now()) / 1000));
+            } else {
+                timerIsRunning = true;
+                timerEndTime = Date.now() + timerSecondsLeft * 1000;
+                timerInterval = setInterval(tickTimer, 250);
+                // Both calls below must run synchronously inside the click so the browser allows them
+                if (state.settings.autoFloat && !pipWindow) openFloatingTimer();
+                if (state.settings.notify && 'Notification' in window && Notification.permission === 'default') {
+                    Notification.requestPermission();
+                }
+            }
+            updateTimerButtons();
+            updateTimerDisplay();
+        }
+
+        // Uses an end timestamp so the countdown stays accurate even when the tab is in the background
+        function tickTimer() {
+            const left = Math.max(0, Math.ceil((timerEndTime - Date.now()) / 1000));
+            if (left !== timerSecondsLeft) {
+                timerSecondsLeft = left;
+                updateTimerDisplay();
+            }
+            if (left <= 0) completeTimer();
+        }
+
+        function completeTimer() {
+            clearInterval(timerInterval);
+            timerIsRunning = false;
+            playSound(587.33, 0.4, 'triangle'); // Alarm sound
+
+            const finishedMode = timerMode;
+            if (state.settings.notify && 'Notification' in window && Notification.permission === 'granted') {
+                try {
+                    new Notification(finishedMode === 'focus' ? 'Focus block complete' : 'Break over', {
+                        body: finishedMode === 'focus' ? 'Nice work. Log your session or take a rest.' : 'Ready for your next focus session?'
+                    });
+                } catch (e) {}
+            }
+            if (pipWindow) pipWindow.document.getElementById('pip-label').textContent = finishedMode === 'focus' ? 'Session complete!' : 'Break over!';
+
+            if (finishedMode === 'focus') {
+                const focusXP = timerTotalSeconds === 50 * 60 ? 120 : 50;
+                if (state.player.dailyFocusXP < 600) {
+                    const allowed = Math.min(focusXP, 600 - state.player.dailyFocusXP);
+                    state.player.dailyFocusXP += allowed;
+                    addXP(allowed, 'Pomodoro Focus Session');
+                } else {
+                    showToast("Daily Focus XP Capped", "Rest up to preserve cognitive momentum!");
+                }
+            } else {
+                showToast("Break Over", "Ready for your next focus session?");
+            }
+
+            timerSecondsLeft = timerTotalSeconds;
+            updateTimerButtons();
+            document.getElementById('timer-display').textContent = formatTimer(timerSecondsLeft);
+            if (pipWindow) pipWindow.document.getElementById('pip-time').textContent = formatTimer(timerSecondsLeft);
+            document.title = 'Civil Engineering Review Master - RPG Edition';
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timerIsRunning = false;
+            timerSecondsLeft = timerTotalSeconds;
+            updateTimerButtons();
+            updateTimerDisplay();
+        }
+
+        // --- Floating (always-on-top) timer via Document Picture-in-Picture ---
+        async function openFloatingTimer() {
+            if (pipWindow) { pipWindow.close(); return; }
+            if (!('documentPictureInPicture' in window)) {
+                showToast('Not supported here', 'The floating timer needs desktop Chrome or Edge. Try "Notify when done" instead.', 'fa-solid fa-circle-exclamation');
+                return;
+            }
+            try {
+                pipWindow = await window.documentPictureInPicture.requestWindow({ width: 280, height: 170 });
+            } catch (e) {
+                pipWindow = null;
+                showToast('Could not float timer', 'The browser blocked the window. Click the button again.', 'fa-solid fa-circle-exclamation');
+                return;
+            }
+
+            const d = pipWindow.document;
+            d.head.innerHTML = `
+                <meta charset="UTF-8">
+                <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&display=swap" rel="stylesheet">
+                <style>
+                    * { box-sizing: border-box; }
+                    body { margin: 0; height: 100vh; background: #030712; color: #f3f4f6; font-family: Orbitron, sans-serif;
+                           display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; user-select: none; }
+                    #pip-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: #38bdf8; }
+                    #pip-time { font-size: 52px; font-weight: 900; letter-spacing: 0.06em; text-shadow: 0 0 10px rgba(56,189,248,0.6); }
+                    .row { display: flex; gap: 8px; }
+                    button { font-family: Orbitron, sans-serif; font-weight: 900; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+                             padding: 8px 16px; border-radius: 8px; cursor: pointer; border: 1px solid #334155; background: #0f172a; color: #e5e7eb; }
+                    #pip-toggle { background: #38bdf8; color: #020617; border-color: #38bdf8; min-width: 90px; }
+                    button:hover { filter: brightness(1.15); }
+                </style>`;
+            d.body.innerHTML = `
+                <div id="pip-label"></div>
+                <div id="pip-time"></div>
+                <div class="row">
+                    <button id="pip-toggle"></button>
+                    <button id="pip-reset">Reset</button>
+                </div>`;
+            d.getElementById('pip-toggle').onclick = toggleTimer;
+            d.getElementById('pip-reset').onclick = resetTimer;
+
+            pipWindow.addEventListener('pagehide', () => {
+                pipWindow = null;
+                document.getElementById('float-btn-label').textContent = 'Float Timer';
+            });
+
+            document.getElementById('float-btn-label').textContent = 'Close Floating Timer';
+            updateTimerButtons();
+            updateTimerDisplay();
+        }
+
+    </script>
+</body>
+</html>
