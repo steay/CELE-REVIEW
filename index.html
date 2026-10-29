@@ -911,13 +911,20 @@ const GEMINI_API_KEY = "AQ.Ab8RN6JTGdqQDAYBJ0RthQhv8tWJaAks7iC4mwxFIYmpt-yWEw";
             
             const payload = {
                 contents: [{ parts: [{ text: text }] }],
-                systemInstruction: { parts: [{ text: "You are CELE AI, a highly advanced, cyberpunk-themed engineering AI tutor helping a student pass the Civil Engineering Licensure Exam (CELE). Provide concise, highly technical, and analytical responses. Keep responses under 3 paragraphs. Refer to the user as 'Trainee' or 'Operator'. VERY IMPORTANT: Wrap all mathematical formulas, equations, and variables in $$ or \\[ \\] for block/display math, and use $ or \\( \\) for inline math so it can be rendered by MathJax." }] }
-            };
+      const payload = {
+        contents: [{ parts: [{ text: userPrompt }] }],
+        systemInstruction: {
+            parts: [{ text: "You are CELE AI, a cyberpunk Civil Engineering AI tutor for the CELE exam." }]
+        }
+    };
 
-            try {
-                const res = await fetch(apiUrl, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
-                const data = await res.json();
-                const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Empty response from server.";
+    try {
+        const res = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const data = await res.json();
+        
+        console.log("API Response:", data); // Check console if it still fails
+
+        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Empty response from server.";
                 
                 const thinkingMsg = document.getElementById('msg-thinking');
                 if (thinkingMsg) thinkingMsg.remove();
